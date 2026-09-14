@@ -2,9 +2,8 @@
 
 Writeups y documentación de laboratorios de ciberseguridad realizados en plataformas de entrenamiento.
 
-## Plataformas
+## CTFs
 
-- [TryHackMe](./TryHackMe/)
-- [Hack The Box](./HackTheBox/)
+- [Skynet](./Skynet/)
 
-Cada CTF o máquina tendrá su propia carpeta con la documentación correspondiente.
+Cada CTF o máquina tendrá su propia carpeta con la documentación correspondiente. Dentro de cada writeup se indica la plataforma utilizada.
