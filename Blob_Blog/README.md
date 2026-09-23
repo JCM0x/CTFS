@@ -10,7 +10,7 @@
 > **Machine:** Blob Blog  
 > **IP:** `10.67.183.58`
 
-## 📝 Summary
+##  Summary
 
 En esta máquina la ruta de compromiso empieza con una enumeración de puertos y servicios. El servidor web del puerto 80 escondía información codificada que llevaba a descubrir un mecanismo de **port knocking**. Después de abrir nuevos puertos, la enumeración permitió conseguir credenciales para FTP y, mediante esteganografía y cifrado Vigenère, obtener las credenciales de Bob.
 
@@ -18,7 +18,7 @@ Con esas credenciales fue posible acceder a una aplicación web en el puerto 808
 
 ---
 
-## 🔎 1. Reconocimiento
+##  1. Reconocimiento
 
 ### Nmap
 
@@ -47,7 +47,7 @@ SSH no era especialmente útil todavía porque no tenía credenciales.
 
 ---
 
-## 🌐 2. Enumeración del puerto 80
+##  2. Enumeración del puerto 80
 
 La página inicial no mostraba nada evidente, así que revisé el código fuente.
 
@@ -82,7 +82,7 @@ Después del knocking volví a escanear la máquina y aparecieron nuevos servici
 
 ---
 
-## 📁 3. FTP y búsqueda de credenciales
+## 3. FTP y búsqueda de credenciales
 
 Uno de los nuevos servicios era FTP. El acceso anónimo estaba deshabilitado, así que continué con la enumeración del puerto 80 y de los nuevos servicios.
 
@@ -99,7 +99,7 @@ Con las credenciales obtenidas pude acceder al FTP.
 
 ---
 
-## 🕵️ 4. Esteganografía
+##  4. Esteganografía
 
 Entre los archivos disponibles encontré una imagen que podía contener información oculta.
 
@@ -115,7 +115,7 @@ La información extraída tenía apariencia de texto cifrado y también incluía
 
 ---
 
-## 🔐 5. Vigenère y Bob's Drawer
+##  5. Vigenère y Bob's Drawer
 
 El puerto **445** también requería atención: en esta máquina no correspondía a SMB, sino a HTTP.
 
@@ -148,7 +148,7 @@ El resultado fueron las credenciales de Bob.
 
 
 
-## 💻 6. Aplicación web — Puerto 8080
+##  6. Aplicación web — Puerto 8080
 
 El puerto **8080** mostraba otra aplicación HTTP basada en Apache.
 
@@ -167,7 +167,7 @@ Después de iniciar sesión encontré una página de review con un campo de entr
 
 ---
 
-## 💉 7. Command Injection
+##  7. Command Injection
 
 Probé comandos básicos en el campo de entrada. Por ejemplo:
 
@@ -181,7 +181,7 @@ La salida del comando aparecía reflejada en la página, confirmando que la apli
 
 ---
 
-## 🐚 8. Acceso inicial — Reverse Shell
+##  8. Acceso inicial — Reverse Shell
 
 Con la ejecución de comandos confirmada, utilicé una reverse shell dentro del laboratorio:
 
@@ -212,7 +212,7 @@ export TERM=xterm-256color
 
 ---
 
-## ⬆️ 9. Escalada a usuario
+##  9. Escalada a usuario
 
 Como `www-data`, comprobé primero los privilegios mediante:
 
@@ -244,7 +244,7 @@ La secuencia correcta permitió obtener acceso como el usuario de la máquina.
 
 ---
 
-## 👑 10. Escalada a root
+##  10. Escalada a root
 
 Después de obtener acceso como usuario observé un comportamiento extraño: aparecía periódicamente un mensaje en la terminal.
 
@@ -296,7 +296,7 @@ La escalada final se consiguió aprovechando el archivo C escribible que era com
 
 ---
 
-## 🧠 What I Learned
+##  What I Learned
 
 - No asumir que un puerto concreto necesariamente ejecuta el servicio esperado.
 - Revisar siempre el código fuente de las aplicaciones web.
@@ -309,7 +309,7 @@ La escalada final se consiguió aprovechando el archivo C escribible que era com
 - `pspy` ayuda a descubrir procesos programados que no aparecen claramente en la crontab.
 - Un archivo modificable que posteriormente es compilado y ejecutado por root puede convertirse en una vía de escalada.
 
-## 🛠️ Tools Used
+##  Tools Used
 
 - Nmap
 - Knock
