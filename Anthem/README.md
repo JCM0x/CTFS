@@ -1,5 +1,8 @@
 # Anthem — CTF Writeup
+
 <img width="676" height="152" alt="Screenshot 2026-09-26 111718" src="https://github.com/user-attachments/assets/78be319f-6e7c-413e-a5c1-42348a61d46d" />
+
+
 
 > **Plataforma:** TryHackMe  
 > **Dificultad:** Fácil  
