@@ -1,5 +1,9 @@
 # Smag Grotto — TryHackMe
 
+
+<img width="515" height="212" alt="Screenshot 2026-11-14 063837" src="https://github.com/user-attachments/assets/1814fb14-99d7-4085-9e9b-896a7a6547d2" />
+
+
 **Plataforma:** TryHackMe  
 **Dificultad:** Easy  
 **Sistema operativo:** Linux  
@@ -12,9 +16,14 @@
 
 Lo primero que hice fue identificar los puertos abiertos de la máquina. Para esto utilicé Nmap con detección de servicios y versiones.
 
-```bash
-sudo nmap -sS -sCV -p- --min-rate=5000 -n -Pn 10.64.157.142 -oG ports
-```
+
+
+
+<img width="760" height="347" alt="Screenshot 2026-11-14 070035" src="https://github.com/user-attachments/assets/0a1ec8ad-247b-442d-8605-13a9f641c7a5" />
+
+
+
+
 
 ### Resultados
 
@@ -29,9 +38,11 @@ El puerto 80 ejecutaba un servidor web Apache y el puerto 22 permitía conexione
 
 **Mi siguiente paso fue investigar el sitio web.**
 
-### Captura de pantalla
 
-> [PEGAR IMAGEN: Resultado del escaneo de Nmap]
+
+<img width="773" height="187" alt="Screenshot 2026-11-14 070510" src="https://github.com/user-attachments/assets/7c5e2e72-82f3-4a9a-ae3a-1ed04f3b57e0" />
+
+
 
 ---
 
@@ -63,7 +74,24 @@ Esto me dio una pista importante: debía investigar el archivo PCAP.
 
 ### Captura de pantalla
 
-> [PEGAR IMAGEN: Correo electrónico encontrado en /mail]
+
+
+
+
+
+
+
+
+<img width="832" height="562" alt="image" src="https://github.com/user-attachments/assets/3cb92c24-db88-454f-bdda-f446a2ea7e2b" />
+
+
+
+
+
+
+
+
+
 
 ---
 
@@ -99,7 +127,12 @@ Ahora tenía un archivo de captura de tráfico de red que podía analizar con Wi
 
 ### Captura de pantalla
 
-> [PEGAR IMAGEN: Descarga del archivo PCAP]
+
+
+> <img width="846" height="201" alt="image" src="https://github.com/user-attachments/assets/17a940d5-fc25-48fa-823f-058dd385261b" />
+
+
+
 
 ---
 
@@ -130,9 +163,13 @@ Esta información era especialmente importante porque indicaba que existía otro
 
 ### Capturas de pantalla
 
-> [PEGAR IMAGEN: Solicitud HTTP POST con las credenciales]
 
-> [PEGAR IMAGEN: Host development.smag.thm en Wireshark]
+
+
+<img width="652" height="312" alt="Screenshot 2026-11-14 090417" src="https://github.com/user-attachments/assets/63ab3667-f5c4-49b2-b40d-1e7750aa9d7d" />
+
+
+
 
 ---
 
@@ -169,9 +206,23 @@ Esta funcionalidad fue la pista que necesitaba para intentar conseguir ejecució
 
 ### Capturas de pantalla
 
-> [PEGAR IMAGEN: Archivo /etc/hosts configurado]
 
-> [PEGAR IMAGEN: Panel de desarrollo después de iniciar sesión]
+
+
+
+
+
+<img width="850" height="383" alt="image" src="https://github.com/user-attachments/assets/1fcd8dd6-4742-424b-9c3c-261b99d810ac" />
+
+
+
+
+
+
+
+
+
+
 
 ---
 
@@ -226,9 +277,16 @@ Ya tenía acceso como `www-data`.
 
 ### Capturas de pantalla
 
-> [PEGAR IMAGEN: Listener de Netcat recibiendo la conexión]
 
-> [PEGAR IMAGEN: Resultado del comando id mostrando www-data]
+
+
+<img width="792" height="192" alt="image" src="https://github.com/user-attachments/assets/ce74a680-acbb-4e22-b1b8-70af7640aff2" />
+
+
+
+
+
+
 
 ---
 
@@ -300,7 +358,7 @@ cat ~/smag_key.pub
 Copié la línea completa y, desde la shell de `www-data`, sobrescribí el archivo vulnerable:
 
 ```bash
-echo 'PEGAR_AQUI_LA_CLAVE_PUBLICA_COMPLETA' > /opt/.backups/jake_id_rsa.pub.backup
+echo 'key' > /opt/.backups/jake_id_rsa.pub.backup
 ```
 
 Esperé a que se ejecutara la tarea programada y después intenté conectarme por SSH:
@@ -311,15 +369,26 @@ ssh -i ~/smag_key jake@10.64.157.142
 
 Si la clave fue instalada correctamente, debería obtener acceso como `jake` sin necesitar su contraseña.
 
-### Capturas de pantalla
+### Capturas de pantalla 
 
-> [PEGAR IMAGEN: Permisos del archivo jake_id_rsa.pub.backup]
 
-> [PEGAR IMAGEN: Tarea cron vulnerable]
 
-> [PEGAR IMAGEN: Generación de las claves SSH]
 
-> [PEGAR IMAGEN: Conexión SSH como jake]
+<img width="840" height="152" alt="image" src="https://github.com/user-attachments/assets/079ab7ef-4179-4a58-a038-594dd2569670" />
+
+
+
+
+<img width="772" height="510" alt="image" src="https://github.com/user-attachments/assets/238238ae-1d29-46e2-b851-685a3db47711" />
+
+
+
+
+
+
+<img width="786" height="178" alt="image" src="https://github.com/user-attachments/assets/b1144e9d-8e00-4d8d-ae4d-8f9a4b6d66ba" />
+
+
 
 ---
 
@@ -371,11 +440,18 @@ El hook `Pre-Invoke` permite ejecutar un comando antes de que se realice la actu
 
 ### Capturas de pantalla
 
-> [PEGAR IMAGEN: Resultado de sudo -l]
 
-> [PEGAR IMAGEN: Ejecución del comando de escalada]
 
-> [PEGAR IMAGEN: whoami mostrando root]
+
+
+
+<img width="855" height="172" alt="image" src="https://github.com/user-attachments/assets/2f459fc9-3590-4026-9026-95cc0090bcc2" />
+
+
+
+
+
+
 
 ---
 
@@ -395,7 +471,16 @@ Root Flag: PEGAR_AQUI_TU_FLAG
 
 ### Captura de pantalla
 
-> [PEGAR IMAGEN: Root Flag obtenida]
+
+
+
+
+<img width="818" height="170" alt="image" src="https://github.com/user-attachments/assets/6f09f34b-00a4-4bc3-a144-b9b0050ec96b" />
+
+
+
+
+
 
 ---
 
